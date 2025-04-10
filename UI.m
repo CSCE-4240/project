@@ -3,8 +3,8 @@ function UI
     ui = uifigure('Name', 'Fourier Shape Descriptor', 'Position', [100 100 600 400]);
     addpath('functions'); 
 
-    grid = uigridlayout(ui, [4, 2]);
-    grid.RowHeight = {'3x', 30, 40, 30}; 
+    grid = uigridlayout(ui, [5, 2]);
+    grid.RowHeight = {'3x', 30, 40, 30, 30}; 
     grid.ColumnWidth = {'1x', '1x'};
 
     ax1 = uiaxes(grid);
@@ -34,7 +34,13 @@ function UI
     reconstructButton.Layout.Row = 4;
     reconstructButton.Layout.Column = [1 2];
 
-    reconstructButton.ButtonPushedFcn = @(src,event) processImage(ax1, ax2, percentSlider.Value);
+    saveButton = uibutton(grid, 'push', 'Text', 'Save Reconstructed Image');
+    saveButton.Layout.Row = 5;
+    saveButton.Layout.Column = [1 2];
+    saveButton.ButtonPushedFcn = @(src, event) saveImage(ax2,ui);
+    saveButton.Enable = 'off';
+
+    reconstructButton.ButtonPushedFcn = @(src,event) processImage(ax1, ax2, percentSlider.Value, saveButton);
 end
 
 function loadImage(ax)
@@ -48,7 +54,7 @@ function loadImage(ax)
     end
 end
 
-function processImage(ax1, ax2, slider_value)
+function processImage(ax1, ax2, slider_value, saveButton)
     % Get the image from ax1 (the original)
     img = getimage(ax1);
 
@@ -64,4 +70,16 @@ function processImage(ax1, ax2, slider_value)
     hold(ax2, 'on');
     viscircles(ax2, centers, radii, 'EdgeColor', 'r');
     hold(ax2, 'off');
+    saveButton.Enable = 'on';
 end
+
+function saveImage(image, ui)
+    img = getimage(image);
+    if(isempty(img))
+        uialert(ui,"NO IMAGE");
+        return;
+    end
+    [file, path] = uiputfile({'*.png'});
+    imwrite(img, fullfile(path, file));
+end
+    
