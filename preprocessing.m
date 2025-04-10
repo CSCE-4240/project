@@ -1,5 +1,5 @@
 % Read the image
-img = imread('people.png'); % Change to your filename
+img = imread('people.png'); 
 
 % Convert to grayscale
 gray = rgb2gray(img);
