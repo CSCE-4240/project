@@ -14,4 +14,7 @@ function output = reconstruction(F_shifted, percent)
 
     % Normalize for visualization
     output = mat2gray(reconstructed);
+    
+    % detect & draw on the new image every time you reconstruct
+    [centers, radii, triangles] = shape_descriptor(output);
 end
