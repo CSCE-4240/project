@@ -1,4 +1,12 @@
 function output = preprocessing(img)
+    maxDimensions = 1024; % Set max dimensions
+    [rows, cols, ~] = size(img);
+    scale = min(1, maxDimensions / max(rows, cols));
+    
+    if scale < 1
+        img = imresize(img, scale);
+    end
+
     % Convert to grayscale
     gray = rgb2gray(img);
 
