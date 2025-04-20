@@ -55,13 +55,16 @@ function processImage(ax1, ax2, slider_value)
     edges = preprocessing(img);
     fourier_descriptors = fourier_transform(edges);
     rec_img = reconstruction(fourier_descriptors, slider_value);
-    [centers, radii] = shape_descriptor(rec_img);
+    %[centers, radii] = circles(rec_img);
+    [isPentagon, boundary] = pentagons(rec_img);
 
     % Show original image in ax2
     imshow(rec_img, 'Parent', ax2);
 
-    % Overlay detected circles
-    hold(ax2, 'on');
-    viscircles(ax2, centers, radii, 'EdgeColor', 'r');
-    hold(ax2, 'off');
+    if isPentagon
+        % Highlight the pentagon using UIAxes-specific plotting
+        line(ax2, boundary(:,2), boundary(:,1), ...
+            'Color', 'g', ...
+            'LineWidth', 3);
+    end
 end
