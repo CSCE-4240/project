@@ -1,4 +1,5 @@
 function [rect_centers, rect_sizes] = detect_rect(img)
+    img = rgb2gray(img);
     % Convert the image to binary
     BW = imbinarize(uint8(img));
     
@@ -21,3 +22,28 @@ function [rect_centers, rect_sizes] = detect_rect(img)
         end
     end
 end
+
+% This is how I was calling the function to test it
+% I figured it would be good for a reference
+%{
+img = imread('people.png');
+
+[rect_centers, rect_sizes] = detect_rect(img);
+
+imshow(img);
+hold on;
+
+for i = 1:size(rect_centers, 1)
+    center = rect_centers(i, :);
+    size_rect = rect_sizes(i, :);
+    
+    % Compute top-left corner
+    topLeft = center - size_rect / 2;
+    
+    % Draw rectangle
+    rectangle('Position', [topLeft, size_rect], ...
+              'EdgeColor', 'r', 'LineWidth', 2);
+end
+
+hold off;
+%}
