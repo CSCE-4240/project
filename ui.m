@@ -4,8 +4,8 @@ function UI
     ui.Color = [0.1 0.1 0.1];
     addpath('functions'); 
 
-    grid = uigridlayout(ui, [3, 2]);
-    grid.RowHeight = {'3x', 30, 30}; 
+    grid = uigridlayout(ui, [5, 2]);
+    grid.RowHeight = {'3x', 30, 30, 'fit','fit'}; 
     grid.ColumnWidth = {'1x', '1x'};
     grid.BackgroundColor = [0.1 0.1 0.1];
     grid.Padding = [15 10 15 10];
@@ -104,7 +104,45 @@ function UI
     saveButton.FontName = 'Segoe UI';
     saveButton.FontSize = 12;
 
-    reconstructButton.ButtonPushedFcn = @(src,event) processImage(ax1, ax2, percentSlider.Value, saveButton);
+    shapeTitle = uilabel(grid,'Text','Shape Selection');
+    shapeTitle.Layout.Row = 4;
+    shapeTitle.Layout.Column = [1 2];
+    shapeTitle.FontName = 'Segoe UI';
+    shapeTitle.FontSize = 12;
+    shapeTitle.FontColor = 'w';
+
+    shapeSelection = uipanel(grid);
+    shapeSelection.BackgroundColor = [0.1 0.1 0.1];
+    shapeSelection.Layout.Row = 5;
+    shapeSelection.Layout.Column = [1 2];
+
+    checkGrid = uigridlayout(shapeSelection, [1, 4]);
+    checkGrid.RowHeight = {'fit'};
+    checkGrid.ColumnWidth = {'1x','1x','1x','1x'};
+    checkGrid.BackgroundColor = [0.1 0.1 0.1];
+    checkGrid.ColumnSpacing = 10;
+
+    circle = uicheckbox(checkGrid,'Text','Circles');
+    circle.Value = true;
+    circle.FontColor = 'w';
+    circle.FontName = 'Segoe UI';
+
+    rectangle = uicheckbox(checkGrid,'Text','Rectangles');
+    rectangle.Value = true;
+    rectangle.FontColor = 'w';
+    rectangle.FontName = 'Segoe UI';
+
+    triangle = uicheckbox(checkGrid,'Text','Triangle');
+    triangle.Value = true;
+    triangle.FontColor = 'w';
+    triangle.FontName = 'Segoe UI';
+
+    pentagon = uicheckbox(checkGrid,'Text','Pentagon');
+    pentagon.Value = true;
+    pentagon.FontColor = 'w';
+    pentagon.FontName = 'Segoe UI';
+
+    reconstructButton.ButtonPushedFcn = @(src,event) processImage(ax1, ax2, percentSlider.Value, saveButton, circle, rectangle, triangle, pentagon);
 end
 
 function loadImage(ax)
@@ -119,7 +157,7 @@ function loadImage(ax)
     end
 end
 
-function processImage(ax1, ax2, slider_value, saveButton)
+function processImage(ax1, ax2, slider_value, saveButton, circle, rectangle, triangle, pentagon)
     % Get the image from ax1 (the original)
     img = getimage(ax1);
 
