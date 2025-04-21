@@ -4,13 +4,13 @@ function UI
     ui.Color = [0.1 0.1 0.1];
     addpath('functions'); 
 
-    grid = uigridlayout(ui, [4, 2]);
-    grid.RowHeight = {'3x', 30, 30, 30}; 
+    grid = uigridlayout(ui, [5, 2]);
+    grid.RowHeight = {'3x', 30, 30, 'fit','fit'}; 
     grid.ColumnWidth = {'1x', '1x'};
     grid.BackgroundColor = [0.1 0.1 0.1];
-    grid.Padding = [15 15 15 15];
-    grid.RowSpacing = 10;
-    grid.ColumnSpacing = 10;
+    grid.Padding = [15 10 15 10];
+    grid.RowSpacing = 8;
+    grid.ColumnSpacing = 8;
 
     ax1 = uiaxes(grid);
     ax1.Layout.Row = 1;
@@ -39,9 +39,16 @@ function UI
     ax2.Title.FontName = 'Segoe UI';
     ax2.Title.FontSize = 18;
 
+    buttonGrid = uigridlayout(grid,[1,3]);
+    buttonGrid.Layout.Row = 2;
+    buttonGrid.Layout.Column=[1 2];
+    buttonGrid.ColumnWidth = {'1x', '1x','1x'};
+    buttonGrid.Padding = [0 0 0 0];
+    buttonGrid.ColumnSpacing = 10;
+    buttonGrid.BackgroundColor = [0.1 0.1 0.1];
 
-    loadButton = uibutton(grid, 'push', 'Text', '📂 Load Image');
-    loadButton.Layout.Row = 2;
+    loadButton = uibutton(buttonGrid, 'push', 'Text', '📂 Load Image');
+    loadButton.Layout.Row = 1;
     loadButton.Layout.Column = 1;
     loadButton.BackgroundColor = [0.2 0.2 0.2];
     loadButton.FontColor = 'w';
@@ -55,13 +62,13 @@ function UI
     sliderGrid.Layout.Row = 3;
     sliderGrid.Layout.Column = [1 2];
     sliderGrid.RowHeight = {'1x'}; 
-    sliderGrid.ColumnWidth = {'1x', 50};
+    sliderGrid.ColumnWidth = {'1x', 30};
     sliderGrid.Padding = [0 0 0 0];
     sliderGrid.ColumnSpacing = 5;
     sliderGrid.BackgroundColor = [0.1 0.1 0.1];
 
 
-    sliderLabel = uilabel(sliderGrid,'HorizontalAlignment','center','Text','');
+    sliderLabel = uilabel(sliderGrid,'HorizontalAlignment','right','Text','100%');
     sliderLabel.Layout.Row = 1;
     sliderLabel.Layout.Column = 2;
     sliderLabel.FontColor = 'w';
@@ -79,22 +86,17 @@ function UI
     percentSlider.FontName = 'Segoe UI';
     percentSlider.FontSize = 12;
 
-    percentSlider.ValueChangedFcn = @(src, event) disp(['Slider value: ' num2str(src.Value)]);
-
-    
-
-
-    reconstructButton = uibutton(grid, 'push', 'Text', 'Reconstruct Image');
-    reconstructButton.Layout.Row = 2;
+    reconstructButton = uibutton(buttonGrid, 'push', 'Text', 'Reconstruct Image');
+    reconstructButton.Layout.Row = 1;
     reconstructButton.Layout.Column = 2;
-    reconstructButton.BackgroundColor = [0.2 0.2 0.2];
+    reconstructButton.BackgroundColor = [0.1 0.4 0.7];
     reconstructButton.FontColor = 'w';
     reconstructButton.FontName = 'Segoe UI';
     reconstructButton.FontSize = 12;
 
-    saveButton = uibutton(grid, 'push', 'Text', '💾Save Reconstructed Image');
-    saveButton.Layout.Row = 4;
-    saveButton.Layout.Column = 1;
+    saveButton = uibutton(buttonGrid, 'push', 'Text', '💾Save Reconstructed Image');
+    saveButton.Layout.Row = 1;
+    saveButton.Layout.Column = 3;
     saveButton.ButtonPushedFcn = @(src, event) saveImage(ax2,ui);
     saveButton.Enable = 'off';
     saveButton.BackgroundColor = [0.2 0.2 0.2];
@@ -102,7 +104,45 @@ function UI
     saveButton.FontName = 'Segoe UI';
     saveButton.FontSize = 12;
 
-    reconstructButton.ButtonPushedFcn = @(src,event) processImage(ax1, ax2, percentSlider.Value, saveButton);
+    shapeTitle = uilabel(grid,'Text','Shape Selection');
+    shapeTitle.Layout.Row = 4;
+    shapeTitle.Layout.Column = [1 2];
+    shapeTitle.FontName = 'Segoe UI';
+    shapeTitle.FontSize = 12;
+    shapeTitle.FontColor = 'w';
+
+    shapeSelection = uipanel(grid);
+    shapeSelection.BackgroundColor = [0.1 0.1 0.1];
+    shapeSelection.Layout.Row = 5;
+    shapeSelection.Layout.Column = [1 2];
+
+    checkGrid = uigridlayout(shapeSelection, [1, 4]);
+    checkGrid.RowHeight = {'fit'};
+    checkGrid.ColumnWidth = {'1x','1x','1x','1x'};
+    checkGrid.BackgroundColor = [0.1 0.1 0.1];
+    checkGrid.ColumnSpacing = 10;
+
+    circle = uicheckbox(checkGrid,'Text','Circles');
+    circle.Value = true;
+    circle.FontColor = 'w';
+    circle.FontName = 'Segoe UI';
+
+    rectangle = uicheckbox(checkGrid,'Text','Rectangles');
+    rectangle.Value = true;
+    rectangle.FontColor = 'w';
+    rectangle.FontName = 'Segoe UI';
+
+    triangle = uicheckbox(checkGrid,'Text','Triangle');
+    triangle.Value = true;
+    triangle.FontColor = 'w';
+    triangle.FontName = 'Segoe UI';
+
+    pentagon = uicheckbox(checkGrid,'Text','Pentagon');
+    pentagon.Value = true;
+    pentagon.FontColor = 'w';
+    pentagon.FontName = 'Segoe UI';
+
+    reconstructButton.ButtonPushedFcn = @(src,event) processImage(ax1, ax2, percentSlider.Value, saveButton, circle, rectangle, triangle, pentagon);
 end
 
 function loadImage(ax)
@@ -117,22 +157,53 @@ function loadImage(ax)
     end
 end
 
-function processImage(ax1, ax2, slider_value, saveButton)
+function processImage(ax1, ax2, slider_value, saveButton, circle, rectangle, triangle, pentagon)
     % Get the image from ax1 (the original)
     img = getimage(ax1);
 
     edges = preprocessing(img);
     fourier_descriptors = fourier_transform(edges);
     rec_img = reconstruction(fourier_descriptors, slider_value);
-    [centers, radii] = shape_descriptor(rec_img);
+    [centers, radii] = circles(rec_img);
+    [isPentagon, boundary] = pentagons(rec_img);
+    [rectCenters, rectSizes] = rectangles(rec_img);
 
-    % Show original image in ax2
     imshow(rec_img, 'Parent', ax2,'InitialMagnification','fit');
     axis(ax2,'image');
-    % Overlay detected circles
-    hold(ax2, 'on');
-    viscircles(ax2, centers, radii, 'EdgeColor', 'r');
-    hold(ax2, 'off');
+    
+    if rectangle.Value
+        if ~isempty(rectCenters)
+            for i = 1:size(rectCenters, 1)
+                center = rectCenters(i, :);
+                sizeVal = rectSizes(i, :);
+            
+                % Get the rectangle corner points
+                x = center(1) - sizeVal(1)/2;
+                y = center(2) - sizeVal(2)/2;
+                width = sizeVal(1);
+                height = sizeVal(2);
+        
+                % Define the four corners of the rectangle
+                rectX = [x, x+width, x+width, x];
+                rectY = [y, y, y+height, y+height];
+        
+                % Draw the rectangle
+                line(ax2, [rectX, rectX(1)], [rectY, rectY(1)], 'Color', 'b', 'LineWidth', 2);
+            end
+        end
+    end
+    
+    % If there is a circle, draw it
+    if circle.Value
+        %draw circles
+        viscircles(ax2, centers, radii, 'EdgeColor', 'r');
+    end
+
+    %if there is a pentagon, draw it
+    if isPentagon
+        line(ax2, boundary(:,2), boundary(:,1), 'Color', 'g', 'LineWidth', 3);
+    end
+   
     saveButton.Enable = 'on';
 end
 

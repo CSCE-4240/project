@@ -166,18 +166,47 @@ function processImage(ax1, ax2, slider_value, saveButton, circle, rectangle, tri
     rec_img = reconstruction(fourier_descriptors, slider_value);
     [centers, radii] = circles(rec_img);
     [isPentagon, boundary] = pentagons(rec_img);
+    [rectCenters, rectSizes] = rectangles(rec_img);
 
     imshow(rec_img, 'Parent', ax2,'InitialMagnification','fit');
     axis(ax2,'image');
     
-    %draw circles
-    viscircles(ax2, centers, radii, 'EdgeColor', 'r');
-    
-    %if there is a pentagon, draw it
-    if isPentagon
-        line(ax2, boundary(:,2), boundary(:,1), 'Color', 'g', 'LineWidth', 3);
+    % If there is a rectangle, draw it
+    if rectangle.Value
+        if ~isempty(rectCenters)
+            for i = 1:size(rectCenters, 1)
+                center = rectCenters(i, :);
+                sizeVal = rectSizes(i, :);
+            
+                % Get the rectangle corner points
+                x = center(1) - sizeVal(1)/2;
+                y = center(2) - sizeVal(2)/2;
+                width = sizeVal(1);
+                height = sizeVal(2);
+        
+                % Define the four corners of the rectangle
+                rectX = [x, x+width, x+width, x];
+                rectY = [y, y, y+height, y+height];
+        
+                % Draw the rectangle
+                line(ax2, [rectX, rectX(1)], [rectY, rectY(1)], 'Color', 'b', 'LineWidth', 2);
+            end
+        end
     end
-   
+    
+    % If there is a circle, draw it
+    if circle.Value
+        %draw circles
+        viscircles(ax2, centers, radii, 'EdgeColor', 'r');
+    end
+
+    %if there is a pentagon, draw it
+    if pentagon.Value
+        if isPentagon
+            line(ax2, boundary(:,2), boundary(:,1), 'Color', 'g', 'LineWidth', 3);
+        end
+    end
+    
     saveButton.Enable = 'on';
 end
 
