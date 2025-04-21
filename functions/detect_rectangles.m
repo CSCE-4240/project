@@ -1,49 +1,76 @@
-function [rect_centers, rect_sizes] = detect_rect(img)
-    img = rgb2gray(img);
-    % Convert the image to binary
-    BW = imbinarize(uint8(img));
-    
-    % Label connected components in the binary image
-    stats = regionprops(BW, 'BoundingBox', 'Area');
-    
+function [rect_centers, rect_sizes] = detect_rect(reconstructedImg)
+    % Binarize reconstructed image
+    bw = imbinarize(reconstructedImg);
+
+    % Extract object boundaries
+    boundaries = bwboundaries(bw);
+
     rect_centers = [];
     rect_sizes = [];
-    
-    for i = 1:length(stats)
-        % Filter based on area
-        if stats(i).Area > 100  % Change threshold
-            boundingBox = stats(i).BoundingBox;
-            aspectRatio = boundingBox(3) / boundingBox(4);
-           
-            if aspectRatio > 0.5 && aspectRatio < 2  % You can adjust these values
-                rect_centers = [rect_centers; boundingBox(1:2) + boundingBox(3:4) / 2]; % Center of rectangle
-                rect_sizes = [rect_sizes; boundingBox(3:4)]; % Width and height of rectangle
-            end
+
+    for k = 1:length(boundaries)
+        boundary = boundaries{k};
+
+        % Convert (row, col) to complex numbers
+        z = boundary(:,2) + 1i * boundary(:,1);
+
+        % Get Fourier descriptors
+        fd = fft(z);
+
+        % Normalize
+        if abs(fd(2)) < 1e-6
+            continue; % Avoid division by zero
+        end
+
+        % Element wise division
+        fd = fd ./ abs(fd(2));  
+
+        % Keep low-frequency descriptors only
+        numDesc = 10;
+        fdReduced = zeros(size(fd));
+        fdReduced(1:min(numDesc, length(fd))) = fd(1:min(numDesc, length(fd)));
+
+        % Reconstruct shape
+        zRecon = ifft(fdReduced);
+        xRecon = real(zRecon);
+        yRecon = imag(zRecon);
+
+        energyRatio = sum(abs(fd(3:end))) / abs(fd(2));
+
+        if energyRatio < 1
+            x = boundary(:,2);
+            y = boundary(:,1);
+            minX = min(x); maxX = max(x);
+            minY = min(y); maxY = max(y);
+
+            center = [(minX + maxX)/2, (minY + maxY)/2];
+            sizeVal = [maxX - minX, maxY - minY];
+
+            rect_centers = [rect_centers; center];
+            rect_sizes = [rect_sizes; sizeVal];
         end
     end
 end
 
-% This is how I was calling the function to test it
-% I figured it would be good for a reference
-%{
-img = imread('people.png');
 
-[rect_centers, rect_sizes] = detect_rect(img);
 
-imshow(img);
+img = imread('squares.png');
+edges = preprocessing(img);
+fourierDescriptors = fourier_transform(edges);
+reconstructedImg = reconstruction(fourierDescriptors, 100);
+
+[centers, sizes] = detect_rect(reconstructedImg);
+
+figure;
+imshow(reconstructedImg);
 hold on;
 
-for i = 1:size(rect_centers, 1)
-    center = rect_centers(i, :);
-    size_rect = rect_sizes(i, :);
-    
-    % Compute top-left corner
-    topLeft = center - size_rect / 2;
-    
-    % Draw rectangle
-    rectangle('Position', [topLeft, size_rect], ...
+for i = 1:size(centers, 1)
+    center = centers(i, :);
+    sizeVal = sizes(i, :);
+    x = center(1) - sizeVal(1)/2;
+    y = center(2) - sizeVal(2)/2;
+
+    rectangle('Position', [x, y, sizeVal(1), sizeVal(2)], ...
               'EdgeColor', 'r', 'LineWidth', 2);
 end
-
-hold off;
-%}
