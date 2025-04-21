@@ -1,10 +1,5 @@
 function [isTriangle, boundaries] = triangles(edges)
-    % triangles: Detects triangular shapes in a binary edge image
-    % Input:
-    %   edges      - binary image from preprocessing (connected edges)
-    % Output:
-    %   isTriangle - logical array, true for each detected triangle
-    %   boundaries - cell array of boundary coordinates for each triangle
+
 
     % Clean up small artifacts and fill holes
     binaryImg = bwareaopen(edges, 100);
@@ -29,7 +24,7 @@ function [isTriangle, boundaries] = triangles(edges)
         boundary = B{1};
         perimeter = stats(i).Perimeter;
 
-        % Approximate boundary to polygon with Douglas–Peucker
+      
         epsilon = 0.02 * perimeter;
         approxCurve = approxPolygon(boundary, epsilon);
         numVertices = size(approxCurve, 1);
@@ -47,7 +42,7 @@ function [isTriangle, boundaries] = triangles(edges)
             end
             avgAngle = mean(angles);
             angleStd = std(angles);
-            % Roughly equilateral: angles ~60° ±20°, low variation
+        
             if avgAngle > 40 && avgAngle < 80 && angleStd < 20
                 isTriangle(i) = true;
                 boundaries{i} = boundary;
@@ -59,7 +54,7 @@ function [isTriangle, boundaries] = triangles(edges)
 end
 
 function approxCurve = approxPolygon(curve, epsilon)
-    % Recursive polygonal approximation (Douglas–Peucker)
+    
     if size(curve, 1) <= 2
         approxCurve = curve;
         return;
@@ -71,7 +66,7 @@ function approxCurve = approxPolygon(curve, epsilon)
     [maxDist, idx] = max(dists);
     idx = idx + 1;
     if maxDist > epsilon
-        % Split and recurse
+      
         part1 = approxPolygon(curve(1:idx, :), epsilon);
         part2 = approxPolygon(curve(idx:end, :), epsilon);
         approxCurve = [part1(1:end-1, :); part2];
