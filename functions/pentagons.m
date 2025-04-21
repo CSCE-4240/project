@@ -1,22 +1,17 @@
-function [isPentagon, boundary] = pentagons(fourierEdges)
+function [isPentagon, boundary] = pentagons(rec_img)
     
-    %normalize the image if needed (ensure values are between 0 and 1)
-    grayImg = mat2gray(fourierEdges);
+    %normalize the image
+    grayImg = mat2gray(rec_img);
     
-    %display the edge image
-    figure;
-    imshow(grayImg);
-    hold on;
     
-    %create binary image using appropriate threshold
-    %since we're working with Fourier edges, we might need to adjust the threshold
+    %create binary image
     binaryImg = imbinarize(grayImg, 'adaptive', 'Sensitivity', 0.4);
     
-    %enhance edges if needed
+    %enhance edges
     binaryImg = bwmorph(binaryImg, 'thin', Inf);
     binaryImg = bwmorph(binaryImg, 'clean');
     
-    %invert if needed (shapes should be white on black)
+    %invert if needed
     if mean(binaryImg(:)) > 0.5
         binaryImg = ~binaryImg;
     end
@@ -30,7 +25,6 @@ function [isPentagon, boundary] = pentagons(fourierEdges)
     stats = regionprops(labeledImg, 'Area', 'Centroid', 'BoundingBox', 'Perimeter', 'Solidity');
     
     %check all shapes for pentagon-like properties
-    pentagonFound = false;
     for i = 1:numObjects
         %get shape properties
         area = stats(i).Area;
@@ -76,12 +70,6 @@ function [isPentagon, boundary] = pentagons(fourierEdges)
             
             %for a regular pentagon, interior angles are 108 degrees
             isRegularPentagon = (avgAngle > 100 && avgAngle < 116 && angleStdDev < 15);
-            
-            fprintf('Shape %d: Vertices=%d, Circularity=%.2f, AvgAngle=%.2f, AngleStdDev=%.2f\n', ...
-                i, vertices, circularity, avgAngle, angleStdDev);
-        else
-            fprintf('Shape %d: Vertices=%d, Circularity=%.2f (not 5 vertices)\n', ...
-                i, vertices, circularity);
         end
         
         isPentagon = false;
@@ -102,12 +90,6 @@ function [isPentagon, boundary] = pentagons(fourierEdges)
             if circularity > 0.80 && circularity < 0.88 && solidity > 0.9
                 isPentagon = true;
             end
-        end
-        
-        if isPentagon
-            %highlight the pentagon
-            figure(1);  %go back to the first figure
-            plot(boundary(:,2), boundary(:,1), 'g', 'LineWidth', 3);
         end
     end
 end
