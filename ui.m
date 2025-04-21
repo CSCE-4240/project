@@ -167,6 +167,7 @@ function processImage(ax1, ax2, slider_value, saveButton, circle, rectangle, tri
     [centers, radii] = circles(rec_img);
     [isPentagon, boundary] = pentagons(rec_img);
     [rectCenters, rectSizes] = rectangles(rec_img);
+    %[triangle_centers, triangle_sizes] = triangles(rec_img);
 
     imshow(rec_img, 'Parent', ax2,'InitialMagnification','fit');
     axis(ax2,'image');
@@ -206,6 +207,34 @@ function processImage(ax1, ax2, slider_value, saveButton, circle, rectangle, tri
             line(ax2, boundary(:,2), boundary(:,1), 'Color', 'g', 'LineWidth', 3);
         end
     end
+
+    [tri_centers, tri_sizes] = triangles(rec_img);
+
+    % If triangle toggle is on
+    if triangle.Value
+        if ~isempty(tri_centers)
+            for i = 1:size(tri_centers, 1)
+                center = tri_centers(i, :);
+                sizeVal = tri_sizes(i, :);
+
+                % Triangle parameters
+                x = center(1);
+                y = center(2);
+                width = sizeVal(1);
+                height = sizeVal(2);
+                r = min(width, height) / 2;
+
+                % Equilateral triangle (pointing up)
+                angles = [pi/2, pi/2 + 2*pi/3, pi/2 + 4*pi/3];
+                triX = x + r * cos(angles);
+                triY = y - r * sin(angles);
+
+                % Draw triangle
+                line(ax2, [triX, triX(1)], [triY, triY(1)], 'Color', 'g', 'LineWidth', 2);
+            end
+        end
+    end
+
     
     saveButton.Enable = 'on';
 end

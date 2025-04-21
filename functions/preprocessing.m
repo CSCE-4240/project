@@ -8,8 +8,11 @@ function output = preprocessing(img)
     end
 
     % Convert to grayscale
-    gray = rgb2gray(img);
-
+    if(size(img, 3)) == 3
+        gray = rgb2gray(img);
+    else
+        gray = img;
+    end
     % Apply median filter for noise reduction
     denoised = medfilt2(gray, [3 3]);
 
