@@ -1,4 +1,4 @@
-function [rect_centers, rect_sizes] = detect_rect(reconstructedImg)
+function [rect_centers, rect_sizes] = rectangles(reconstructedImg)
     % Binarize reconstructed image
     bw = imbinarize(reconstructedImg);
 
@@ -53,7 +53,7 @@ function [rect_centers, rect_sizes] = detect_rect(reconstructedImg)
 end
 
 
-
+%{
 img = imread('squares.png');
 edges = preprocessing(img);
 fourierDescriptors = fourier_transform(edges);
@@ -74,3 +74,4 @@ for i = 1:size(centers, 1)
     rectangle('Position', [x, y, sizeVal(1), sizeVal(2)], ...
               'EdgeColor', 'r', 'LineWidth', 2);
 end
+%}
